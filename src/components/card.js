@@ -1,7 +1,5 @@
-import { openPopup, closePopup } from './modal.js';
-
 // @todo: Функция создания карточки
-function createCard(element, deleteCard, likeCard) {
+function createCard(element, deleteCard, likeCard, openImagePopup) {
   const cardTemplate = document.querySelector('#card-template').content;
   const cardElement = cardTemplate.querySelector('.card').cloneNode(true);
   const deleteButton = cardElement.querySelector('.card__delete-button');
@@ -20,16 +18,8 @@ function createCard(element, deleteCard, likeCard) {
     likeCard(likeButton);
   });
 
-  cardImage.addEventListener('click', function(){
-    const imagePopup = document.querySelector('.popup_type_image');
-    const popupImage = imagePopup.querySelector('.popup__image');
-    const popupCaption = imagePopup.querySelector('.popup__caption');
-
-    popupImage.src = element.link;
-    popupImage.alt = element.name;
-    popupCaption.textContent = element.name;
-
-    openPopup(imagePopup);
+  cardImage.addEventListener('click', function() {
+    openImagePopup(element.link, element.name, element.name);
   });
 
   return cardElement;
@@ -40,13 +30,9 @@ function deleteCard(cardElement) {
   cardElement.remove();
 };
 
-// @todo: Вывести карточки на страницу                                   
-function renderCard(cardElement, container) {
-  container.append(cardElement);
-}
-
+// @todo: Функция лайка карточки
 function likeCard(likeButton) {
   likeButton.classList.toggle('card__like-button_is-active');
 }
 
-export { createCard, deleteCard, renderCard, likeCard };
+export { createCard, deleteCard, likeCard };
