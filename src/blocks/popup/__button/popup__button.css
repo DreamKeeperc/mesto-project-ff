@@ -17,6 +17,7 @@
 .popup__button:hover {
   background: rgba(0, 0, 0, 0.8);
   cursor: pointer;
+  border: 1px solid #C4C4C4;
 }
 
 @media screen and (max-width: 568px) {
@@ -24,4 +25,12 @@
     font-size: 14px;
     line-height: 17px;
   }
+}
+
+.popup__button_disabled {
+  background-color: #FFFFFF;  /* или любой другой цвет фона */
+  color: #C4C4C4;
+  border: 1px solid #C4C4C4;
+  cursor: default;
+  pointer-events: none;  /* отключаем клики */
 }

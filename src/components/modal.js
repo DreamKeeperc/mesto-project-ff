@@ -36,9 +36,6 @@ function setupPopupCloseHandlers() {
   popup.forEach(function(popup) {
     popup.addEventListener('mousedown', handleOverlayClick); // Закрытие по клику на оверлей
   })
-  
-  // Глобальный обработчик Esc
-  document.addEventListener('keydown', handleEscapeKey);
 }
 
 export { openPopup, closePopup, setupPopupCloseHandlers }
