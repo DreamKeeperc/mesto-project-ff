@@ -42,15 +42,22 @@ const cardDescriptionInput = cardFormElement.querySelector('.popup__input_type_u
 
 const cardAvatarInput = avatarFormElement.querySelector('.popup__input_type_url_avatar');
 
-// включение валидации вызовом enableValidation, все настройки передаются при вызове:
-enableValidation({
+const validationConfig = {
   formSelector: '.popup__form',
   inputSelector: '.popup__input',
   submitButtonSelector: '.popup__button',
   inactiveButtonClass: 'popup__button_disabled',
   inputErrorClass: 'popup__input_type_error',
   errorClass: 'popup__error_visible'
-});
+};
+
+let currentUserId;
+
+// @todo: Включение валидации вызовом enableValidation, все настройки передаются при вызове:
+enableValidation(validationConfig);
+
+// @todo: Срабатывает функция закрытия через ESC для всех попапов
+setupPopupCloseHandlers();
 
 // @todo: Вывести карточки на страницу      
 function renderCard(cardElement, container) {
@@ -65,76 +72,8 @@ Promise.all([getUserInfo(), getInitialCards()])
     profileDescription.textContent = userData.about;
     profileImage.style.backgroundImage = `url(${userData.avatar})`;
    
-    const currentUserId = userData._id;
+    currentUserId = userData._id;
 
-    // @todo: Функция открытия попапа через картинку 
-    function openAvatarPopup() { 
-      clearValidation(avatarFormElement, {
-        formSelector: '.popup__form',
-        inputSelector: '.popup__input',
-        submitButtonSelector: '.popup__button',
-        inactiveButtonClass: 'popup__button_disabled',
-        inputErrorClass: 'popup__input_type_error',
-        errorClass: 'popup__error_visible'
-      });
-      openPopup(avatarPopup);
-    }
-
-    profileImage.addEventListener('click', openAvatarPopup);
-
-       function handleAvatarFormSubmit(evt) {
-        evt.preventDefault();
-
-        const avatarUrl = cardAvatarInput.value;
-        const submitButton = evt.target.querySelector('.popup__button');
-        const defaultButtonText = submitButton.textContent;
-
-        updateUserAvatar(avatarUrl)
-          .then(() => {
-            submitButton.textContent = 'Сохранение...';
-            return updateUserAvatar(avatarUrl);
-          })
-          .then((res) => {
-            profileImage.style.backgroundImage = `url(${res.avatar})`;
-            closePopup(avatarPopup);
-            avatarFormElement.reset();
-          })
-          .catch((err) => {
-            console.error('Ошибка:', err);
-          })
-          .finally(() => {
-            submitButton.textContent = defaultButtonText;
-            submitButton.disabled = false;
-          });
-        }
-    
-    avatarFormElement.addEventListener('submit', handleAvatarFormSubmit);
-
-    // @todo: Обработчик «отправки» формы для добавления карточки 
-    function handleCardFormSubmit(evt) {
-      evt.preventDefault(); 
-      const submitButton = evt.target.querySelector('.popup__button');
-      const defaultButtonText = submitButton.textContent;
-      submitButton.textContent = 'Сохранение...';
-      submitButton.disabled = true;
-
-      addNewCard(cardNameInput.value, cardDescriptionInput.value)
-        .then((card) => {
-          placesList.prepend(createCard(card, currentUserId, deleteCard, likeCard, openImagePopup));
-          closePopup(addPopup);
-          cardFormElement.reset();
-        })
-        .catch((err) => {
-          console.error('Ошибка при загрузке данных:', err);
-        })
-        .finally(() => {
-          submitButton.textContent = defaultButtonText;
-          submitButton.disabled = false;
-        })
-    }
-
-    cardFormElement.addEventListener('submit', handleCardFormSubmit);
-    
     // Отрисовываем карточки
     cards.forEach(card => {
       renderCard(createCard(card, currentUserId, deleteCard, likeCard, openImagePopup), placesList);
@@ -144,50 +83,97 @@ Promise.all([getUserInfo(), getInitialCards()])
     console.error('Ошибка при загрузке данных:', err);
   });
 
-// @todo: обработчик на кнопку открытия попапа редактирования  
-editButton.addEventListener('click', function() {
-  openPopup(editPopup);
-  nameInput.value = profileName.textContent;
-  descriptionInput.value = profileDescription.textContent;
-  clearValidation(editFormElement, {
-    formSelector: '.popup__form',
-    inputSelector: '.popup__input',
-    submitButtonSelector: '.popup__button',
-    inactiveButtonClass: 'popup__button_disabled',
-    inputErrorClass: 'popup__input_type_error',
-    errorClass: 'popup__error_visible'
-  })
-})
+// @todo: Обработчик «отправки» формы для добавления карточки 
+function handleCardFormSubmit(evt) {
+  evt.preventDefault(); 
 
-// @todo: Обработчик на кнопку открытия попапа добавления 
-addButtonPopup.addEventListener('click', function() {
-  openPopup(addPopup);
-  clearValidation(cardFormElement , {
-    formSelector: '.popup__form',
-    inputSelector: '.popup__input',
-    submitButtonSelector: '.popup__button',
-    inactiveButtonClass: 'popup__button_disabled',
-    inputErrorClass: 'popup__input_type_error',
-    errorClass: 'popup__error_visible'
-  });
-})
+  const submitButton = evt.target.querySelector('.popup__button');
+  const defaultButtonText = submitButton.textContent;
 
-// @todo: Функция открытия карточки через картинку
-function openImagePopup (imageSrc, imageAlt, captionText) {
-  popupImage.src = imageSrc;
-  popupImage.alt = imageAlt;
-  popupCaption.textContent = captionText;
+  submitButton.textContent = 'Сохранение...';
+  submitButton.disabled = true;
 
-  openPopup(imagePopup);
+  addNewCard(cardNameInput.value, cardDescriptionInput.value)
+    .then((card) => {
+      placesList.prepend(createCard(card, currentUserId, deleteCard, likeCard, openImagePopup));
+      closePopup(addPopup);
+      cardFormElement.reset();
+    })
+    .catch((err) => {
+      console.error('Ошибка при загрузке данных:', err);
+    })
+    .finally(() => {
+      submitButton.textContent = defaultButtonText;
+      submitButton.disabled = false;
+    })
 }
 
-// @todo: Навешиваем обработчик на все кнопки закрытия
-closeButtons.forEach(function(button){
-  button.addEventListener('click', function() {
-    const popup = button.closest('.popup');
-    closePopup(popup);
+cardFormElement.addEventListener('submit', handleCardFormSubmit);
+
+// @todo: Функция открытия попапа аватара через картинку 
+function openAvatarPopup() { 
+  clearValidation(avatarFormElement, validationConfig);
+  openPopup(avatarPopup);
+}
+
+profileImage.addEventListener('click', openAvatarPopup);
+
+function handleAvatarFormSubmit(evt) {
+  evt.preventDefault();
+
+  const avatarUrl = cardAvatarInput.value;
+  const submitButton = evt.target.querySelector('.popup__button');
+  const defaultButtonText = submitButton.textContent;
+
+  submitButton.textContent = 'Сохранение...';
+
+  updateUserAvatar(avatarUrl)
+    .then((res) => {
+      profileImage.style.backgroundImage = `url(${res.avatar})`;
+      closePopup(avatarPopup);
+      avatarFormElement.reset();
+    })
+    .catch((err) => {
+      console.error('Ошибка:', err);
+    })
+    .finally(() => {
+      submitButton.textContent = defaultButtonText;
+      submitButton.disabled = false;
+    });
+}
+
+avatarFormElement.addEventListener('submit', handleAvatarFormSubmit);
+
+// @todo: обработчик на кнопку открытия попапа редактирования  
+  editButton.addEventListener('click', function() {
+    openPopup(editPopup);
+    clearValidation(editFormElement, validationConfig);
+    nameInput.value = profileName.textContent;
+    descriptionInput.value = profileDescription.textContent;
   })
-})
+
+// @todo: Обработчик на кнопку открытия попапа добавления 
+  addButtonPopup.addEventListener('click', function() {
+    openPopup(addPopup);
+    clearValidation(cardFormElement, validationConfig);
+  })
+
+// @todo: Функция открытия карточки через картинку
+  function openImagePopup (imageSrc, imageAlt, captionText) {
+    popupImage.src = imageSrc;
+    popupImage.alt = imageAlt;
+    popupCaption.textContent = captionText;
+
+    openPopup(imagePopup);
+  }
+
+// @todo: Навешиваем обработчик на все кнопки закрытия
+  closeButtons.forEach(function(button){
+    button.addEventListener('click', function() {
+      const popup = button.closest('.popup');
+      closePopup(popup);
+    })
+  })
 
 // Функция обработчик события "отправки" формы для редактирования
 // Обработчик «отправки» формы, хотя пока
@@ -216,6 +202,3 @@ function handleEditFormSubmit(evt) {
 }
 
 editFormElement.addEventListener('submit', handleEditFormSubmit);
-
-// @todo: Срабатывает функция закрытия через ESC для всех попапов
-setupPopupCloseHandlers();

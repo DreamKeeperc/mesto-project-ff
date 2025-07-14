@@ -44,6 +44,9 @@ function deleteCard(cardId, cardElement, handleServerDelete) {
     .then(() => {
       cardElement.remove();
     })
+    .catch(err => {
+      console.error('Ошибка при загрузке данных:', err);
+    });
 };
 
 function likeCard(likeButton, toggleLike, cardId, currentUserId, likesCounterElement) {

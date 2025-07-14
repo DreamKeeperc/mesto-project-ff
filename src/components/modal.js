@@ -1,14 +1,12 @@
 // @todo: Функция открытия попапа
 function openPopup(popupElement) {
   popupElement.classList.add('popup_is-opened');
-  popupElement.classList.add('popup_is-animated');
   document.addEventListener('keydown', handleEscapeKey);
 }
 
 // @todo: Функция закрытия попапа
 function closePopup(popupElement) {
   popupElement.classList.remove('popup_is-opened');
-  popupElement.classList.add('popup_is-animated');
   document.removeEventListener('keydown', handleEscapeKey);
 }
 
